@@ -1,0 +1,7 @@
+bin/
+obj/
+node_modules/
+.angular/
+src/ImLab.Web/wwwroot/*
+!src/ImLab.Web/wwwroot/.gitkeep
+*.user

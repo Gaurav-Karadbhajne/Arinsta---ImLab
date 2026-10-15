@@ -1,0 +1,22 @@
+@model ReceiptVm
+@{ Layout = null; }
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Receipt @Model.BillNo</title>
+<style>
+ body{font-family:system-ui,Arial,sans-serif;margin:24px;color:#0F2A3D} h1{margin:0;font-size:22px} table{width:100%;border-collapse:collapse;margin-top:14px}
+ th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left} td.r,th.r{text-align:right} .tot td{font-weight:700} .muted{color:#5B7384;font-size:13px}
+ @@media print{ body{margin:8px} }
+</style></head>
+<body>
+ <h1>@Model.CompanyName</h1>
+ <p class="muted">Receipt @Model.BillNo &middot; Lab no @Model.LabNo &middot; @Model.BookedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</p>
+ <p><b>@Model.PatientName</b> (@Model.Uid)</p>
+ <table>
+  <tr><th>Test</th><th class="r">Amount</th></tr>
+  @foreach (var l in Model.Lines) { <tr><td>@l.Test</td><td class="r">@l.Price.ToString("N2")</td></tr> }
+  <tr class="tot"><td>Total</td><td class="r">@Model.Total.ToString("N2")</td></tr>
+  <tr><td>Discount</td><td class="r">@Model.Discount.ToString("N2")</td></tr>
+  <tr><td>Paid (@Model.PaymentMode)</td><td class="r">@Model.Paid.ToString("N2")</td></tr>
+  <tr class="tot"><td>Balance</td><td class="r">@Model.Balance.ToString("N2")</td></tr>
+ </table>
+</body></html>

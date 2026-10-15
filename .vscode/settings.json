@@ -1,0 +1,22 @@
+{
+  "sqltools.connections": [
+    {
+      "name": "ImLab master (3307)",
+      "driver": "MySQL",
+      "server": "127.0.0.1",
+      "port": 3307,
+      "database": "imlab_master",
+      "username": "imlab",
+      "password": "imlab_dev_pw"
+    },
+    {
+      "name": "ImLab tenant CITYDIAG (3307)",
+      "driver": "MySQL",
+      "server": "127.0.0.1",
+      "port": 3307,
+      "database": "imlab_t_citydiag",
+      "username": "imlab",
+      "password": "imlab_dev_pw"
+    }
+  ]
+}

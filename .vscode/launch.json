@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API (debug)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "api: build",
+      "program": "${workspaceFolder}/src/ImLab.Web/bin/Debug/net8.0/ImLab.Web.dll",
+      "cwd": "${workspaceFolder}/src/ImLab.Web",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5000"
+      },
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Client (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "client: serve",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/client"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full stack (API + Chrome)",
+      "configurations": ["API (debug)", "Client (Chrome)"],
+      "preLaunchTask": "mysql: start"
+    }
+  ]
+}
