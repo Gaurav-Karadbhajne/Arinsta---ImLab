@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
-import { LoginResult } from './models';
+import { Captcha, LoginResult } from './models';
 
 const KEY = 'imlab.session';
 
@@ -13,9 +13,13 @@ export class AuthService {
   readonly isSignedIn = computed(() => !!this.session());
 
   /** Company ID, then username, then password. The server finds the lab's database from the company ID. */
-  login(companyId: string, username: string, password: string) {
-    return this.http.post<LoginResult>('/api/v1/auth/login', { companyId, username, password })
-      .pipe(tap(r => { this.session.set(r); sessionStorage.setItem(KEY, JSON.stringify(r)); }));
+    /** Company ID, username, password — plus a captcha (id + typed answer) once the server demands it (428). */
+  login(companyId: string, username: string, password: string, captcha?: Captcha | null, captchaAnswer?: string) {
+    return this.http.post<LoginResult>('/api/v1/auth/login', {
+      companyId, username, password,
+      captchaId: captcha?.captchaId ?? null,       // null when not required -> server ignores it
+      captchaAnswer: captchaAnswer || null
+    }).pipe(tap(r => { this.session.set(r); sessionStorage.setItem(KEY, JSON.stringify(r)); }));
   }
 
   logout() { this.session.set(null); sessionStorage.removeItem(KEY); }

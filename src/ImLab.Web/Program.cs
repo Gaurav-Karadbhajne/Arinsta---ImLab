@@ -7,12 +7,15 @@ using ImLab.Models.Services;
 using ImLab.Models.Validators;
 using ImLab.Web.Filters;
 using ImLab.Web.Middleware;
+using ImLab.Web.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;   // free license for small businesses
+
 var cfg = builder.Configuration;
 
 var secretKey = Convert.FromBase64String(cfg["Security:SecretKeyBase64"]!);
@@ -44,6 +47,10 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<ConfigService>();
+// Captcha is a singleton: it only wraps IMemoryCache, which is itself a singleton.
+builder.Services.AddSingleton<CaptchaService>();
+builder.Services.AddScoped<MasterRepository>();   // Masters module data access
+builder.Services.AddScoped<MasterService>();      // Masters module business rules
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddHttpContextAccessor();
 var jwt = new JwtOptions(cfg["Jwt:Key"]!, cfg["Jwt:Issuer"]!, cfg["Jwt:Audience"]!, cfg.GetValue<int>("Jwt:Minutes"));
@@ -76,7 +83,12 @@ builder.Services.AddRateLimiter(o =>
 });
 
 // ---- MVC (the "C" and "V" side) ----
-builder.Services.AddControllersWithViews(o => o.Filters.Add<ValidationFilter>()).AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
+builder.Services.AddControllersWithViews(o => o.Filters.Add<ValidationFilter>()).AddJsonOptions(o =>
+{
+    o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    // Every stored timestamp is UTC; make the JSON say so instead of leaving it ambiguous.
+    o.JsonSerializerOptions.Converters.Add(new UtcDateTimeJsonConverter());
+});
 
 var app = builder.Build();
 

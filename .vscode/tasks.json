@@ -1,74 +1,121 @@
+
 {
   "version": "2.0.0",
   "tasks": [
     {
       "label": "mysql: start",
-      "detail": "Starts portable MySQL 8 on port 3307; does nothing if it is already running",
-      "type": "shell",
-      "command": "powershell",
+      "detail": "Starts MySQL 8 on port 3307 if needed",
+      "type": "process",
+      "command": "powershell.exe",
       "args": [
         "-NoProfile",
-        "-Command",
-        "$up = try { $c = New-Object Net.Sockets.TcpClient; $c.Connect('127.0.0.1', 3307); $true } catch { $false }; if ($up) { Write-Host 'MySQL is already running on port 3307.' } else { Start-Process -FilePath 'C:\\Users\\kp\\tools\\mysql8\\bin\\mysqld.exe' -ArgumentList '--defaults-file=${workspaceFolder}\\infra\\mysql\\my.ini' -WindowStyle Hidden; Write-Host 'Starting MySQL in the background (hidden, survives window closes)...' }"
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\infra\\mysql\\start-mysql.ps1"
       ],
       "problemMatcher": [],
-      "presentation": { "group": "dev", "reveal": "always" }
+      "presentation": {
+        "group": "dev",
+        "reveal": "always"
+      }
     },
     {
       "label": "api: build",
       "detail": "Builds the .NET API",
       "type": "shell",
       "command": "dotnet",
-      "args": ["build", "${workspaceFolder}/src/ImLab.Web/ImLab.Web.csproj"],
-      "group": { "kind": "build", "isDefault": true },
-      "problemMatcher": "$msCompile",
-      "presentation": { "group": "dev", "reveal": "silent" }
+      "args": [
+        "build",
+        "${workspaceFolder}/src/ImLab.Web/ImLab.Web.csproj"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$msCompile"
     },
     {
       "label": "api: run",
-      "detail": "Runs the API on http://localhost:5000 (Development) without the debugger",
+      "detail": "Runs the .NET API on port 5000",
       "type": "shell",
       "command": "dotnet",
-      "args": ["run", "--project", "${workspaceFolder}/src/ImLab.Web"],
-      "options": { "cwd": "${workspaceFolder}" },
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/src/ImLab.Web"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "isBackground": true,
       "problemMatcher": {
         "owner": "dotnet-run",
-        "pattern": { "regexp": "^$" },
-        "background": { "activeOnStart": true, "beginsPattern": ".*", "endsPattern": "Now listening on:" }
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Now listening on:"
+        }
       },
-      "presentation": { "group": "dev", "reveal": "always", "panel": "dedicated" }
+      "presentation": {
+        "group": "dev",
+        "reveal": "always",
+        "panel": "dedicated"
+      }
     },
     {
       "label": "client: serve",
-      "detail": "Runs the Angular dev server on http://localhost:4200",
+      "detail": "Runs the Angular dev server on port 4200",
       "type": "shell",
       "command": "npm.cmd",
-      "args": ["start"],
-      "options": { "cwd": "${workspaceFolder}/client" },
+      "args": [
+        "start"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/client"
+      },
       "isBackground": true,
       "problemMatcher": {
         "owner": "ng-serve",
-        "pattern": { "regexp": "^$" },
-        "background": { "activeOnStart": true, "beginsPattern": ".*", "endsPattern": "Local:.*http" }
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Local:.*http"
+        }
       },
-      "presentation": { "group": "dev", "reveal": "always", "panel": "dedicated" }
+      "presentation": {
+        "group": "dev",
+        "reveal": "always",
+        "panel": "dedicated"
+      }
     },
     {
       "label": "tests: run",
       "detail": "Runs the .NET unit tests",
       "type": "shell",
       "command": "dotnet",
-      "args": ["test", "${workspaceFolder}/src/ImLab.Tests/ImLab.Tests.csproj"],
+      "args": [
+        "test",
+        "${workspaceFolder}/src/ImLab.Tests/ImLab.Tests.csproj"
+      ],
       "group": "test",
-      "problemMatcher": "$msCompile",
-      "presentation": { "group": "dev", "reveal": "always" }
+      "problemMatcher": "$msCompile"
     },
     {
       "label": "dev: full stack",
-      "detail": "Starts MySQL (if needed), the API and the Angular client together",
+      "detail": "Starts MySQL, the API, and Angular",
       "dependsOrder": "parallel",
-      "dependsOn": ["mysql: start", "api: run", "client: serve"],
+      "dependsOn": [
+        "mysql: start",
+        "api: run",
+        "client: serve"
+      ],
       "problemMatcher": []
     }
   ]

@@ -82,10 +82,13 @@ INSERT INTO number_series (series_key, current_no) VALUES ('lab_no', 2610000), (
 INSERT INTO centers (name, center_type, code) VALUES ('Main Branch', 'main', 'MAIN');
 INSERT INTO roles (id, name, code, landing, max_discount_percent) VALUES
  (1,'Admin','admin','dashboard',NULL),(2,'Front Office','FO','registration',10),(3,'Technician','TECH','result',0),(4,'Consultant Pathologist','CP','result',0);
+-- Permissions per role. Admin(1) gets everything; other roles can view masters but not change them.
+-- Keys must match Perm constants in Abstractions.cs — keep the two in sync when adding endpoints.
 INSERT INTO role_permissions (role_id, perm_key) VALUES
- (1,'dashboard.view'),(1,'booking.view'),(1,'booking.create'),(1,'outsource.view'),(1,'config.view'),(1,'config.edit'),
- (2,'dashboard.view'),(2,'booking.view'),(2,'booking.create'),(2,'outsource.view'),
- (3,'dashboard.view'),(3,'booking.view'),(4,'dashboard.view'),(4,'booking.view');
+ (1,'dashboard.view'),(1,'booking.view'),(1,'booking.create'),(1,'outsource.view'),(1,'config.view'),(1,'config.edit'),(1,'master.view'),(1,'master.manage'),
+ (2,'dashboard.view'),(2,'booking.view'),(2,'booking.create'),(2,'outsource.view'),(2,'master.view'),
+ (3,'dashboard.view'),(3,'booking.view'),(3,'master.view'),
+ (4,'dashboard.view'),(4,'booking.view'),(4,'master.view');
 -- Standard first login for every lab: username Admin, password Imlab@123  (change before handover)
 INSERT INTO users (center_id, role_id, username, full_name, password_hash) VALUES
  (1, 1, 'Admin', 'Administrator', 'v1.100000.V54+KeguXy6BgU7Nm8k3jw==.cdyyY4C/cEfLeHbVK68DE1wl13LKurikRZvi3XWQ3tQ=');
@@ -95,3 +98,4 @@ INSERT INTO tests (department_id, name, short_name, price, sort_order) VALUES
  (2,'Kidney function test','KFT',800,4),(4,'Thyroid profile','TFT',650,5),(4,'Vitamin D','VITD',900,6),(3,'Pus culture','PUS',350,7);
 INSERT INTO outsource_labs (name) VALUES ('Metropolis'),('SRL Diagnostics'),('Thyrocare');
 -- Tenant-level config rows start empty: values fall back to platform defaults from imlab_master.config
+

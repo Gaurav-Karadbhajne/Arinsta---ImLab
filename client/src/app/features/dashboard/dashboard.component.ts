@@ -89,7 +89,13 @@ export class DashboardComponent implements OnInit {
   areaLine = signal(''); areaFill = signal('');
   bars = signal<{ x: number; y: number; w: number; h: number; label: string; color: string }[]>([]);
   slices = signal<{ label: string; value: number; color: string; dash: string; offset: number }[]>([]);
-  today = new Date().toDateString();
+  // The header shows the lab's IST day, not whatever timezone the server or browser is set to.
+  today = (() => {
+    const d = new Date();
+    const weekday = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short' }).format(d);
+    const date = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
+    return `${weekday}, ${date}`;
+  })();
   icons: Record<string, string> = {
     users: 'M9 7a3 3 0 1 0 6 0 3 3 0 0 0-6 0M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2',
     check: 'M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9ZM8.5 12.5l2.5 2.5 5-5',

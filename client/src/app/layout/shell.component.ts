@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, HostListener, computed, inject, sig
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { ConfigService } from '../core/config.service';
+import { ToastComponent } from './toast.component';  
 
 @Component({
   selector: 'app-shell', standalone: true, changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
   template: `
   <header class="top">
     <a class="brand" routerLink="/dashboard" (click)="close()">
@@ -31,6 +32,24 @@ import { ConfigService } from '../core/config.service';
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>Outsource tests</a>
         </div>
       </div>
+            <div class="has-menu" routerLinkActive #mta="routerLinkActive" (click)="$event.stopPropagation()">
+        <button class="grp" [class.on]="mta.isActive" (click)="mt.set(!mt())">Masters
+          <svg class="chev" [class.up]="mt()" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="menu" [class.open]="mt()">
+          <a routerLink="/master/tests" routerLinkActive="on" (click)="close()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v6.5L4.5 18a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 8.5V2M8.5 2h7M7 15h10"/></svg>Tests</a>
+        </div>
+      </div>
+      <div class="has-menu" routerLinkActive #rta="routerLinkActive" (click)="$event.stopPropagation()">
+        <button class="grp" [class.on]="rta.isActive" (click)="rt.set(!rt())">Reports
+          <svg class="chev" [class.up]="rt()" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="menu" [class.open]="rt()">
+          <a routerLink="/reports/delete-log" routerLinkActive="on" (click)="close()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/></svg>Delete log</a>
+        </div>
+      </div>
     </nav>
 
     <span class="sp"></span>
@@ -48,8 +67,10 @@ import { ConfigService } from '../core/config.service';
       </div>
     </div>
   </header>
-  <main class="fade"><router-outlet /></main>`,
-  styles: [`
+    <main><router-outlet /></main>
+    <app-toast />  `,
+ 
+ styles: [`
     :host{display:block;min-height:100vh}
     .top{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;padding:0 22px;height:62px;
       background:color-mix(in srgb,var(--card) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
@@ -81,6 +102,8 @@ import { ConfigService } from '../core/config.service';
     .av{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;
       background:linear-gradient(135deg,#12B3A0,#0B7A6D);color:#fff;font-size:12px;font-weight:800}
     .who{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25}.who b{font-size:13px}.who small{color:var(--mut);font-size:11px}
+       /* Never put opacity/transform animations on <main>: they create a stacking context
+       and trap every fixed drawer/modal (z-index 80-90) under the sticky header (z-index 50). */
     main{width:min(1480px,100%);margin:0 auto;padding:24px 28px 48px}
     @media(max-width:920px){
       .tag{display:none}.burger{display:inline-flex}
@@ -95,12 +118,13 @@ import { ConfigService } from '../core/config.service';
 })
 export class ShellComponent {
   auth = inject(AuthService); private router = inject(Router);
-  pt = signal(false); um = signal(false); nav = signal(false);
+  pt = signal(false); mt = signal(false); rt = signal(false); um = signal(false); nav = signal(false);
+  
   initials = computed(() => (this.auth.user()?.fullName ?? 'U').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase());
   constructor() { inject(ConfigService).load(); }
 
   @HostListener('document:click')
-  close() { this.pt.set(false); this.um.set(false); this.nav.set(false); }
+  close() { this.pt.set(false); this.mt.set(false); this.rt.set(false); this.um.set(false); this.nav.set(false); }
 
   out() { this.auth.logout(); this.router.navigateByUrl('/login'); }
 }

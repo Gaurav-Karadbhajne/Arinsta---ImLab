@@ -1,7 +1,14 @@
+// Login screen, including the captcha flow: after 3 failed passwords the API answers 428.
+// We then fetch a math captcha from /auth/captcha, show it under the password field,
+// and send its id + the typed answer together with the next login attempt.
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { ApiService } from '../../core/api.service';
+import { Captcha } from '../../core/models';
+import { ToastService } from '../../core/toast.service';
+
 
 @Component({
   selector: 'app-login', standalone: true, changeDetection: ChangeDetectionStrategy.OnPush, imports: [ReactiveFormsModule],
@@ -26,6 +33,20 @@ import { AuthService } from '../../core/auth.service';
         <div><label class="lb" for="cid">Company ID</label><input id="cid" class="inp" formControlName="companyId" autocomplete="organization" placeholder="e.g. 100001"></div>
         <div><label class="lb" for="un">Username</label><input id="un" class="inp" formControlName="username" autocomplete="username" placeholder="Admin"></div>
         <div><label class="lb" for="pw">Password</label><input id="pw" type="password" class="inp" formControlName="password" autocomplete="current-password" placeholder="••••••••"></div>
+
+        @if (captcha(); as c) {
+        <div class="cap rise">
+          <label class="lb" for="cap">Security check</label>
+          <div class="qrow">
+            <span class="q">{{ c.question }}</span>
+            <button type="button" class="re" (click)="refreshCaptcha()" title="New question" aria-label="New question">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg>
+            </button>
+          </div>
+          <input id="cap" class="inp" [formControl]="answer" placeholder="Your answer" autocomplete="off">
+        </div>
+        }
+
         <button class="btn full" [disabled]="f.invalid || busy()">{{ busy() ? 'Signing in…' : 'Sign in' }}</button>
         <p class="err">{{ error() }}</p>
       </form>
@@ -49,11 +70,20 @@ import { AuthService } from '../../core/auth.service';
     .form{display:flex;align-items:center;justify-content:center;padding:32px;background:var(--bg)}
     form{width:380px;max-width:100%;background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--sh-lg);padding:34px;display:flex;flex-direction:column;gap:15px}
     h2{font-size:26px;margin:0}.mut{margin:-6px 0 6px}
+    /* Captcha box: question chip + small refresh icon-button + answer input. */
+    .cap{display:flex;flex-direction:column;gap:8px;background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:12px}
+    .qrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .q{font-weight:800;letter-spacing:.03em;color:var(--ink)}
+    .re{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--mut);cursor:pointer;transition:all .15s}
+    .re:hover{color:var(--teal);border-color:var(--teal)}
   `]
 })
 export class LoginComponent {
-  private fb = inject(FormBuilder); private auth = inject(AuthService); private router = inject(Router);
-  busy = signal(false); error = signal('');
+  private fb = inject(FormBuilder); private auth = inject(AuthService); private api = inject(ApiService); private router = inject(Router); private notify = inject(ToastService);  // Null = server has not demanded a captcha yet; set on the first 428, cleared on successful login (page navigates away).
+  busy = signal(false);
+error = signal('');
+  captcha = signal<Captcha | null>(null);
+  answer = new FormControl('', { nonNullable: true });
   f = this.fb.nonNullable.group({
     companyId: ['', [Validators.required, Validators.maxLength(30)]],
     username: ['', Validators.required], password: ['', Validators.required]
@@ -61,11 +91,24 @@ export class LoginComponent {
 
   submit() {
     if (this.f.invalid) return;
+    if (this.captcha() && !this.answer.value.trim()) return;   // captcha visible -> an answer is mandatory
     this.busy.set(true); this.error.set('');
     const v = this.f.getRawValue();
-    this.auth.login(v.companyId, v.username, v.password).subscribe({
-      next: () => this.router.navigateByUrl('/dashboard'),
-      error: e => { this.error.set(e.error?.message ?? 'Could not sign in.'); this.busy.set(false); }
+    this.auth.login(v.companyId, v.username, v.password, this.captcha(), this.answer.value.trim()).subscribe({
+      next: () => { this.notify.ok('Welcome back'); this.router.navigateByUrl('/dashboard'); },
+
+      error: e => {
+        // 428 = captcha now required; if a captcha was already shown it was consumed (wrong answer/password) -> fetch a fresh one.
+        if (e.status === 428 || this.captcha()) this.refreshCaptcha();
+        this.error.set(e.error?.message ?? 'Could not sign in.');
+        this.notify.err(e.error?.message ?? 'Could not sign in.');
+        this.busy.set(false);
+      }
     });
+  }
+
+  refreshCaptcha() {
+    this.answer.setValue('');
+    this.api.captcha().subscribe(c => this.captcha.set(c));
   }
 }

@@ -1,22 +1,55 @@
 @model ReceiptVm
 @{ Layout = null; }
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Receipt @Model.BillNo</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Receipt @Model.BillNo</title>
 <style>
- body{font-family:system-ui,Arial,sans-serif;margin:24px;color:#0F2A3D} h1{margin:0;font-size:22px} table{width:100%;border-collapse:collapse;margin-top:14px}
- th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left} td.r,th.r{text-align:right} .tot td{font-weight:700} .muted{color:#5B7384;font-size:13px}
- @@media print{ body{margin:8px} }
-</style></head>
+    * { box-sizing: border-box }
+    body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; background: #F4F7F6; color: #0F2A3D }
+    .rc { max-width: 420px; margin: 0 auto; background: #fff; padding: 22px 24px }
+    h1 { font-size: 20px; margin: 0; text-align: center }
+    .sub { text-align: center; color: #5B7384; font-size: 12px; margin: 2px 0 12px }
+    .meta { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; border-top: 1.5px dashed #B9C6CE; border-bottom: 1.5px dashed #B9C6CE; padding: 8px 0; margin-bottom: 10px }
+    .meta span { color: #5B7384 }
+    .meta b { margin-left: 4px }
+    .pat { font-size: 14px; margin: 4px 0 10px }
+    .rb { display: inline-block; margin-left: 8px; padding: 1px 9px; border: 1.5px solid #C0392B; color: #C0392B; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: 1px; vertical-align: middle }
+    table { width: 100%; border-collapse: collapse; font-size: 13px }
+    th, td { padding: 6px 2px; border-bottom: 1px dashed #DDE5E9; text-align: left }
+    th.r, td.r { text-align: right }
+    thead th { color: #5B7384; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #B9C6CE }
+    .tot td { font-weight: 700; border-bottom: none }
+    .grand td { font-weight: 800; font-size: 15px; border-top: 1.5px solid #0F2A3D; border-bottom: none }
+    .foot { text-align: center; color: #5B7384; font-size: 12px; margin-top: 14px; border-top: 1.5px dashed #B9C6CE; padding-top: 8px }
+    .np { margin-top: 10px; padding: 7px 18px; border: 0; border-radius: 8px; background: #0B7A6D; color: #fff; font-weight: 700; cursor: pointer }
+    @@media print { body { background: #fff } .rc { padding: 4px } .np { display: none } }
+</style>
+</head>
 <body>
- <h1>@Model.CompanyName</h1>
- <p class="muted">Receipt @Model.BillNo &middot; Lab no @Model.LabNo &middot; @Model.BookedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</p>
- <p><b>@Model.PatientName</b> (@Model.Uid)</p>
- <table>
-  <tr><th>Test</th><th class="r">Amount</th></tr>
-  @foreach (var l in Model.Lines) { <tr><td>@l.Test</td><td class="r">@l.Price.ToString("N2")</td></tr> }
-  <tr class="tot"><td>Total</td><td class="r">@Model.Total.ToString("N2")</td></tr>
-  <tr><td>Discount</td><td class="r">@Model.Discount.ToString("N2")</td></tr>
-  <tr><td>Paid (@Model.PaymentMode)</td><td class="r">@Model.Paid.ToString("N2")</td></tr>
-  <tr class="tot"><td>Balance</td><td class="r">@Model.Balance.ToString("N2")</td></tr>
- </table>
-</body></html>
+  <div class="rc">
+    <h1>@Model.CompanyName</h1>
+    <p class="sub">Receipt @Model.BillNo</p>
+    <div class="meta">
+      <div><span>Lab no</span><b>@Model.LabNo</b></div>
+      <div><span>Date</span><b>@IndianTime.FromUtc(Model.BookedAt).ToString("dd/MM/yyyy, hh:mm tt 'IST'")</b></div>
+      <div><span>Patient</span><b>@Model.PatientName</b></div>
+      <div><span>ID</span><b>@Model.Uid</b></div>
+    </div>
+    <p class="pat">Payment: <b>@Model.PaymentMode</b>@if (Model.IsRebook) { <span class="rb">REBOOK</span> }</p>
+    <table>
+      <thead><tr><th>Test</th><th class="r">Amount</th></tr></thead>
+      <tbody>
+        @foreach (var l in Model.Lines) { <tr><td>@l.Test</td><td class="r">@l.Price.ToString("N2")</td></tr> }
+        <tr class="tot"><td>Total</td><td class="r">@Model.Total.ToString("N2")</td></tr>
+        <tr><td>Discount</td><td class="r">- @Model.Discount.ToString("N2")</td></tr>
+        <tr><td>Paid</td><td class="r">- @Model.Paid.ToString("N2")</td></tr>
+        <tr class="grand"><td>Balance</td><td class="r" style="color:@(Model.Balance > 0 ? "#C0392B" : "#0B7A6D")"><b>@Model.Balance.ToString("N2")</b></td></tr>
+      </tbody>
+    </table>
+    <p class="foot">Thank you! Please bring this receipt for report collection.</p>
+    <div style="text-align:center"><button class="np" onclick="window.print()">Print receipt</button></div>
+  </div>
+</body>
+</html>

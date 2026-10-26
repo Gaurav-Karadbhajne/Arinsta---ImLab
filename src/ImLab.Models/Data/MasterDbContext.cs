@@ -9,6 +9,12 @@ public sealed class MasterDbContext(DbContextOptions<MasterDbContext> options) :
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<DbServer> DbServers => Set<DbServer>();
     public DbSet<ConfigItem> Config => Set<ConfigItem>();
+    // public DbSet<ReferralDoctor> ReferralDoctors => Set<ReferralDoctor>();
+    // public DbSet<Hospital> Hospitals => Set<Hospital>();
+    // public DbSet<SampleCollector> SampleCollectors => Set<SampleCollector>();
+    // public DbSet<Package> Packages => Set<Package>();
+    // public DbSet<PackageTest> PackageTests => Set<PackageTest>();
+    // public DbSet<BookingPackage> BookingPackages => Set<BookingPackage>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

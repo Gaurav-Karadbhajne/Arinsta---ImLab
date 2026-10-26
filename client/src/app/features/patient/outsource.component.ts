@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { ApiService } from '../../core/api.service';
+import { IstDatePipe } from '../../core/ist-date.pipe';
 import { OutsourceRow } from '../../core/models';
 
 @Component({
-  selector: 'app-outsource', standalone: true, changeDetection: ChangeDetectionStrategy.OnPush, imports: [DatePipe],
+  selector: 'app-outsource', standalone: true, changeDetection: ChangeDetectionStrategy.OnPush, imports: [IstDatePipe],
   template: `
   <div class="ph">
     <div><h1>Outsource tests</h1><p class="mut">Tests sent to external laboratories and their status.</p></div>
@@ -17,7 +17,7 @@ import { OutsourceRow } from '../../core/models';
       <thead><tr><th>Date</th><th>Lab no</th><th>Patient</th><th>Test</th><th>Outsource lab</th><th>Status</th></tr></thead>
       <tbody>
         @for (r of rows(); track r.id) {
-          <tr><td>{{ r.bookedAt | date:'dd MMM yyyy' }}</td><td><b>{{ r.labNo }}</b></td><td>{{ r.patientName }}</td><td>{{ r.testName }}</td><td>{{ r.labName }}</td>
+          <tr><td>{{ r.bookedAt | istDate:'date' }}</td><td><b>{{ r.labNo }}</b></td><td>{{ r.patientName }}</td><td>{{ r.testName }}</td><td>{{ r.labName }}</td>
             <td><span class="b dot" [class.y]="r.status === 'Pending'" [class.p]="r.status === 'SampleSent'" [class.g]="r.status === 'Received'">{{ r.status }}</span></td></tr>
         } @empty {
           <tr><td colspan="6" class="mut" style="text-align:center;padding:26px">No outsourced tests in this view.</td></tr>

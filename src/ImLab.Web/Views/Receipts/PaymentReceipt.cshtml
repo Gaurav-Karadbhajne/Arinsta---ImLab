@@ -1,0 +1,69 @@
+@model PaymentReceiptVm
+@{
+    Layout = null;
+    var isRefund = Model.Kind == "refund";
+    var heading = isRefund ? "REFUND VOUCHER" : "PAYMENT RECEIPT";
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>@Model.ReceiptNo</title>
+    <style>
+        body { font-family: system-ui, Arial, sans-serif; background:#F4F7F9; margin:0; padding:22px; color:#0F2A3D }
+        .rc { max-width:430px; margin:0 auto; background:#fff; border:1px solid #E1E9ED; border-radius:14px; padding:22px 24px; box-shadow:0 10px 30px -18px rgba(12,27,42,.25) }
+        h1 { font-size:19px; margin:0 0 2px }
+        .tag { display:inline-block; font-size:10px; font-weight:800; letter-spacing:1.4px; padding:3px 9px; border-radius:99px; margin-bottom:12px }
+        .tag.pay { background:#E4F4F1; color:#0B7A6D }
+        .tag.ref { background:#FDE8E6; color:#C0392B }
+        .meta { display:grid; grid-template-columns:auto 1fr; gap:5px 12px; font-size:12px; color:#5B7384; border-top:1px dashed #DCE6EB; border-bottom:1px dashed #DCE6EB; padding:10px 0; margin:10px 0 }
+        .meta b { color:#0F2A3D; font-weight:600; text-align:right }
+        .amt { text-align:center; padding:14px 0 6px }
+        .amt small { display:block; font-size:11px; letter-spacing:1px; color:#5B7384; margin-bottom:4px }
+        .amt .v { font-size:30px; font-weight:800 }
+        .amt .v.pay { color:#0B7A6D }
+        .amt .v.ref { color:#C0392B }
+        table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px }
+        td { padding:5px 0; border-bottom:1px solid #EEF3F5 }
+        td.r { text-align:right; font-weight:600 }
+        .tot td { font-weight:800; border-top:1.5px solid #0F2A3D; border-bottom:0 }
+        .note { font-size:12px; color:#5B7384; margin-top:10px; line-height:1.5 }
+        .np { display:block; width:100%; margin-top:16px; padding:10px; border:0; border-radius:10px; background:#0E9F8E; color:#fff; font-weight:700; cursor:pointer }
+        @@media print { body { background:#fff; padding:0 } .rc { border:0; box-shadow:none } .np { display:none } }
+    </style>
+</head>
+<body>
+<div class="rc">
+    <h1>@Model.CompanyName</h1>
+    <span class="tag @(isRefund ? "ref" : "pay")">@heading</span>
+    <div class="meta">
+        <span>Receipt no</span><b>@Model.ReceiptNo</b>
+        <span>Bill no</span><b>@Model.BillNo</b>
+        <span>Lab no</span><b>@Model.LabNo</b>
+        <span>Date</span><b>@IndianTime.FromUtc(Model.PaidAt).ToString("dd/MM/yyyy, hh:mm tt 'IST'")</b>
+        <span>Patient</span><b>@Model.PatientName</b>
+        <span>Patient ID</span><b>@Model.Uid</b>
+        <span>Mode</span><b>@Model.Mode</b>
+    </div>
+    <div class="amt">
+        <small>@(isRefund ? "AMOUNT REFUNDED" : "AMOUNT RECEIVED")</small>
+        <div class="v @(isRefund ? "ref" : "pay")">@Model.Amount.ToString("N2")</div>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Model.Reason) || !string.IsNullOrWhiteSpace(Model.Remark))
+    {
+        <div class="note">
+            @if (!string.IsNullOrWhiteSpace(Model.Reason)) { <div><b>Reason:</b> @Model.Reason</div> }
+            @if (!string.IsNullOrWhiteSpace(Model.Remark)) { <div><b>Remark:</b> @Model.Remark</div> }
+        </div>
+    }
+    <table>
+        <tr><td>Bill total</td><td class="r">@Model.Total.ToString("N2")</td></tr>
+        <tr><td>Discount</td><td class="r">- @Model.Discount.ToString("N2")</td></tr>
+        <tr><td>Collected so far</td><td class="r">@Model.Paid.ToString("N2")</td></tr>
+        <tr><td>Refunded so far</td><td class="r">@Model.Refunded.ToString("N2")</td></tr>
+        <tr class="tot"><td>Balance</td><td class="r">@Model.Balance.ToString("N2")</td></tr>
+    </table>
+    <button class="np" onclick="window.print()">Print</button>
+</div>
+</body>
+</html>

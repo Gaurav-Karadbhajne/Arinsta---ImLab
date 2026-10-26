@@ -15,9 +15,12 @@ public sealed class UserRepository(TenantDbContext db)
         db.RolePermissions.Where(p => p.RoleId == roleId).Select(p => p.PermKey).ToListAsync(ct);
 
     // MySQL evaluates SET assignments left to right, so failed_attempts is already incremented in the IF.
-    public Task RegisterFailureAsync(long userId, CancellationToken ct) => db.Database.ExecuteSqlInterpolatedAsync(
-        $"UPDATE users SET failed_attempts = failed_attempts + 1, locked_until = IF(failed_attempts >= 5, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 15 MINUTE), locked_until) WHERE id = {userId}", ct);
+    //public Task RegisterFailureAsync(long userId, CancellationToken ct) => db.Database.ExecuteSqlInterpolatedAsync(
+       // $"UPDATE users SET failed_attempts = failed_attempts + 1, locked_until = IF(failed_attempts >= 5, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 15 MINUTE), locked_until) WHERE id = {userId}", ct);
 
+    // Counts the failure. Locking is gone — after 3 failures AuthService demands a captcha instead.
+    public Task RegisterFailureAsync(long userId, CancellationToken ct) => db.Database.ExecuteSqlInterpolatedAsync(
+        $"UPDATE users SET failed_attempts = failed_attempts + 1 WHERE id = {userId}", ct);
     public Task ResetFailuresAsync(long userId, CancellationToken ct) => db.Database.ExecuteSqlInterpolatedAsync(
         $"UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = {userId}", ct);
 }

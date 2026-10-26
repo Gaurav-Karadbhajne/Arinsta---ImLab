@@ -22,6 +22,7 @@ public sealed class TenantContext(Services.SecretProtector protector) : ITenantC
     public bool IsResolved => _info is not null;
     public long Id => _info!.Id;
     public string CompanyId => _info!.CompanyId;
+    
     public string CompanyName => _info!.CompanyName;
     public string Host => _info!.Host;
     public string Database => _info!.Database;

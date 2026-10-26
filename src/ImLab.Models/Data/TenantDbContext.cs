@@ -23,6 +23,12 @@ public sealed class TenantDbContext(ITenantContext tenant) : DbContext
     public DbSet<DailySummary> DailySummary => Set<DailySummary>();
     public DbSet<AuditLog> AuditLog => Set<AuditLog>();
 
+    public DbSet<ReferralDoctor> ReferralDoctors => Set<ReferralDoctor>();
+    public DbSet<Hospital> Hospitals => Set<Hospital>();
+    public DbSet<SampleCollector> SampleCollectors => Set<SampleCollector>();
+    public DbSet<Package> Packages => Set<Package>();
+    public DbSet<PackageTest> PackageTests => Set<PackageTest>();
+    public DbSet<BookingPackage> BookingPackages => Set<BookingPackage>();
     protected override void OnConfiguring(DbContextOptionsBuilder o)
     {
         var (host, port) = SplitHostPort(tenant.Host);
@@ -48,7 +54,11 @@ public sealed class TenantDbContext(ITenantContext tenant) : DbContext
         b.Entity<RolePermission>().HasKey(x => new { x.RoleId, x.PermKey });
         b.Entity<NumberSeries>().HasKey(x => x.SeriesKey);
         b.Entity<DailySummary>().HasKey(x => new { x.CenterId, x.SummaryDate });
+        b.Entity<PackageTest>().HasKey(x => new { x.PackageId, x.TestId });   // join table: pair of ids IS the primary key
         b.Entity<Patient>().Ignore(x => x.FullName);
+
+        // balance is a STORED generated column in MySQL: read-only for EF, so it is never inserted/updated.
+        b.Entity<Booking>().Property(x => x.Balance).HasComputedColumnSql("total - discount - paid", stored: true);
         b.Entity<BookingTest>().HasOne(x => x.Booking).WithMany(x => x.Tests).HasForeignKey(x => x.BookingId);
         b.Entity<BookingTest>().HasOne(x => x.Test).WithMany().HasForeignKey(x => x.TestId);
         b.Entity<Booking>().HasOne(x => x.Patient).WithMany().HasForeignKey(x => x.PatientId);

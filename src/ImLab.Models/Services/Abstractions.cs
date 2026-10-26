@@ -19,4 +19,8 @@ public static class Perm
     public const string OutsourceView = "outsource.view";
     public const string ConfigView = "config.view";
     public const string ConfigEdit = "config.edit";
+
+        // ADDED (Masters module): view = can open master screens, manage = can add/edit tests
+    public const string MasterView = "master.view";
+    public const string MasterManage = "master.manage";
 }
